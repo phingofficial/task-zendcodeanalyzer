@@ -1,4 +1,5 @@
 <?php
+
 /**
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -17,8 +18,11 @@
  * <http://phing.info>.
  */
 
-namespace Phing\Task\Ext;
+namespace Phing\Task\Ext\ZendCodeAnalyzer;
 
+use Phing\Exception\BuildException;
+use Phing\Io\File;
+use Phing\Project;
 use Phing\Task;
 use Phing\Type\Element\FileSetAware;
 
@@ -77,9 +81,9 @@ class ZendCodeAnalyzerTask extends Task
     /**
      * File to be analyzed
      *
-     * @param \PhingFile $file
+     * @param File $file
      */
-    public function setFile(\PhingFile $file)
+    public function setFile(File $file)
     {
         $this->file = $file;
     }
@@ -130,14 +134,14 @@ class ZendCodeAnalyzerTask extends Task
     public function main()
     {
         if (!isset($this->analyzerPath)) {
-            throw new \BuildException("Missing attribute 'analyzerPath'");
+            throw new BuildException("Missing attribute 'analyzerPath'");
         }
 
         if (!isset($this->file) and count($this->filesets) == 0) {
-            throw new \BuildException("Missing either a nested fileset or attribute 'file' set");
+            throw new BuildException("Missing either a nested fileset or attribute 'file' set");
         }
 
-        if ($this->file instanceof \PhingFile) {
+        if ($this->file instanceof File) {
             $this->analyze($this->file->getPath());
         } else { // process filesets
             $project = $this->getProject();
@@ -153,14 +157,14 @@ class ZendCodeAnalyzerTask extends Task
             }
         }
 
-        $this->log("Number of findings: " . $this->counter, \Project::MSG_INFO);
+        $this->log("Number of findings: " . $this->counter, Project::MSG_INFO);
     }
 
     /**
      * Analyze file
      *
      * @param  string $file
-     * @throws \BuildException
+     * @throws BuildException
      * @return void
      */
     protected function analyze($file)
@@ -186,19 +190,19 @@ class ZendCodeAnalyzerTask extends Task
 
                 for ($i = 2, $size = count($result); $i < ($size - 1); $i++) {
                     $this->counter++;
-                    $this->log($result[$i], \Project::MSG_WARN);
+                    $this->log($result[$i], Project::MSG_WARN);
                 }
 
                 $total = count($result) - 3;
 
                 if ($total > 0 && $this->haltonwarning) {
-                    throw new \BuildException('zendcodeanalyzer detected ' . $total . ' warning' . ($total > 1 ? 's' : '') . ' in ' . $file);
+                    throw new BuildException('zendcodeanalyzer detected ' . $total . ' warning' . ($total > 1 ? 's' : '') . ' in ' . $file);
                 }
             } else {
-                throw new \BuildException('Permission denied: ' . $file);
+                throw new BuildException('Permission denied: ' . $file);
             }
         } else {
-            throw new \BuildException('File not found: ' . $file);
+            throw new BuildException('File not found: ' . $file);
         }
     }
 }
